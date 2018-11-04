@@ -1,0 +1,72 @@
+#
+# 
+#
+
+#
+# Build the GUI
+#
+[xml]$xaml = @"
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Application Switcher" Height="200" Width="300"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="SingleBorderWindow" ResizeMode="CanMinimize">
+    <Grid>
+        <ListBox Name="ListBox" HorizontalAlignment="Stretch" Margin="10,10,10,35" VerticalAlignment="Stretch"/>
+        <Button Name="Select" Content="Select" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="75"/>
+    </Grid>
+</Window>
+"@
+$reader=(New-Object System.Xml.XmlNodeReader $xaml)
+$XMLForm=[Windows.Markup.XamlReader]::Load( $reader )
+$XMLForm.Title = "Application Switcher"
+
+#
+# Admin check
+#
+<#If (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
+    [Security.Principal.WindowsBuiltInRole] “Administrator”))
+{
+    Add-Type -AssemblyName System.Windows.Forms
+    [System.Windows.Forms.MessageBox]::Show("You do not have Administrator rights to run this script!`nPlease re-run this script as an Administrator!","Error",0,[System.Windows.Forms.MessageBoxIcon]::Error)
+    Write-Warning “You do not have Administrator rights to run this script!`nPlease re-run this script as an Administrator!”
+    Break
+}#>
+function Exe2Png($exe){
+    $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($exe)
+    $bmp = $icon.ToBitmap()
+    $stream = new-object System.IO.MemoryStream
+    $bmp.Save($stream, [System.Drawing.Imaging.ImageFormat]::Png)
+    $imageSource = [System.Windows.Media.Imaging.BitmapFrame]::Create($stream); 
+    return $imageSource
+}
+#-----------------------------------------------------------[ListBox]------------------------------------------------------------
+$ListBox = $XMLForm.FindName('ListBox')
+
+$applications = Get-Content "$($PSScriptRoot)\applications.json" | ConvertFrom-Json
+
+foreach($a in $applications.Applications){
+    $a
+    $ListBox.Items.Add($a.Name)
+}
+
+$ListBox_MouseDoubleClick=[System.Windows.Forms.MouseEventHandler]{
+    $hit = $ListBox.HitTest($_.Location)
+    if($hit.Item){
+        Write-Host 	$hit.Item
+    }
+
+    foreach($item in $ListBox.SelectedItems){ 
+        Write-Host $item.text
+    }
+}
+#-----------------------------------------------------------[SelectButton]------------------------------------------------------------
+$SelectButton = $XMLForm.FindName("Select")
+$SelectButton.add_Click({
+    Write-Host 123
+})
+
+
+#-----------------------------------------------------------[Show Form]------------------------------------------------------------
+$XMLForm.Icon = Exe2Png "C:\Windows\System32\mmc.exe"
+$XMLForm.ShowDialog()
