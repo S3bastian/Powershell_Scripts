@@ -1,5 +1,5 @@
 #
-# 
+#
 #
 
 #Load Assembly and Library
@@ -103,7 +103,7 @@ function InstallSoftware{
     if($global:guiselection.Count -eq 2){
         $obj =  $applications.$($jsonPath[0]).$($jsonPath[1])
     }
-    elseif($global:guiselection.Count -eq 2){
+    elseif($global:guiselection.Count -eq 1){
         $obj =  $applications.$($jsonPath[0])
     }
 
@@ -112,10 +112,12 @@ function InstallSoftware{
     }    
     elseif($obj.Path -like "*.ps1"){
         start-process powershell -Argumentlist "-file `"$($obj.Path)`" $($obj.Arguments)"
-    }elseif($obj.Arguments -eq $null -or $obj.Arguments -eq ""){
+    }elseif($obj.Path -like "*.exe" -and ($obj.Arguments -ne $null -or $obj.Arguments -ne "")){
+        Start-Process $obj.Path -ArgumentList $obj.Arguments
+    }elseif($obj.Path -like "*.exe"){
         Start-Process $obj.Path
     }else{
-        Start-Process $obj.Path -ArgumentList $obj.Arguments
+        exit
     }
 }
 
