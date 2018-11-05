@@ -1,5 +1,5 @@
 #
-#
+# 
 #
 
 #Load Assembly and Library
@@ -106,16 +106,26 @@ function InstallSoftware{
     elseif($global:guiselection.Count -eq 1){
         $obj =  $applications.$($jsonPath[0])
     }
-
+   
     if($obj.Path -like "*.cmd"){
-        Start-Process "cmd.exe" -ArgumentList "/c `"$($obj.Path)`" $($obj.Arguments)"
+        if($obj.Arguments -ne $null -or $obj.Arguments -ne ""){
+            Start-Process "cmd.exe" -ArgumentList "/c `"$($obj.Path)`" $($obj.Arguments)"
+        }else{
+            Start-Process "cmd.exe" -ArgumentList "/c `"$($obj.Path)`""
+        }
     }    
     elseif($obj.Path -like "*.ps1"){
-        start-process powershell -Argumentlist "-file `"$($obj.Path)`" $($obj.Arguments)"
-    }elseif($obj.Path -like "*.exe" -and ($obj.Arguments -ne $null -or $obj.Arguments -ne "")){
-        Start-Process $obj.Path -ArgumentList $obj.Arguments
+        if($obj.Arguments -ne $null -or $obj.Arguments -ne ""){
+            start-process powershell -Argumentlist "-file `"$($obj.Path)`" $($obj.Arguments)"
+        }else{
+            start-process powershell -Argumentlist "-file `"$($obj.Path)`""
+        }
     }elseif($obj.Path -like "*.exe"){
-        Start-Process $obj.Path
+        if($obj.Arguments -ne $null -or $obj.Arguments -ne ""){
+            Start-Process $obj.Path -ArgumentList $obj.Arguments
+        }else{
+            Start-Process $obj.Path
+        }
     }else{
         exit
     }
