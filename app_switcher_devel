@@ -57,8 +57,13 @@ function GUI($applications, $praefix){
     $ListBox = $XMLForm.FindName('ListBox')    
     if($praefix -ne $null){      
         $names = $applications.$($praefix).psobject.properties.name | Sort-Object
-        foreach($a in $names){        
-            $ListBox.Items.Add($a) | Out-Null
+        if($names.Count -eq 1){
+            $global:guiselection += $names
+            return $null
+        }else{
+            foreach($a in $names){        
+                $ListBox.Items.Add($a) | Out-Null
+            }
         }
     }else{
         $names = $applications.psobject.properties.name | Sort-Object
@@ -81,31 +86,24 @@ function GUI($applications, $praefix){
 
 function Main{
     # Admin check
-    AdminCheck
+    #AdminCheck
     
     # Program data
-    $applications = Get-Content "$($PSScriptRoot)\applications.json" | ConvertFrom-Json
-    
+    $applications = Get-Content "$($PSScriptRoot)\applications.json" | ConvertFrom-Json   
+
     # User selection
     $global:guiselection = @()
     GUI $applications
     foreach($selected in $global:guiselection){
-        $version = GUI $applications $selected
+        GUI $applications $selected
     }
-
-    # Install software
     InstallSoftware
 }
 
 function InstallSoftware{
     Write-Host "Installing: $($global:guiselection)" -ForegroundColor Green
     [PSCustomObject]$jsonPath = $global:guiselection
-    if($global:guiselection.Count -eq 2){
-        $obj =  $applications.$($jsonPath[0]).$($jsonPath[1])
-    }
-    elseif($global:guiselection.Count -eq 1){
-        $obj =  $applications.$($jsonPath[0])
-    }
+    $obj =  $applications.$($jsonPath[0]).$($jsonPath[1])
    
     if($obj.Path -like "*.cmd"){
         if($obj.Arguments -ne $null -or $obj.Arguments -ne ""){
@@ -121,7 +119,7 @@ function InstallSoftware{
             start-process powershell -Argumentlist "-file `"$($obj.Path)`""
         }
     }elseif($obj.Path -like "*.exe"){
-        if($obj.Arguments -ne $null -or $obj.Arguments -ne ""){
+        if($obj.Arguments -ne $null -and $obj.Arguments -ne ""){
             Start-Process $obj.Path -ArgumentList $obj.Arguments
         }else{
             Start-Process $obj.Path
