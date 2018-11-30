@@ -94,7 +94,7 @@ function Main{
     AdminCheck
     
     # Program data
-    $applications = Get-Content "$($PSScriptRoot)\applications.json" | ConvertFrom-Json   
+    $applications = Get-Content "$($PSScriptRoot)\AppInstaller.json" | ConvertFrom-Json   
 
     # User selection
     $global:guiselection = @()
