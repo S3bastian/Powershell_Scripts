@@ -27,7 +27,7 @@ function GUI($applications, $praefix){
     [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Application Switcher" Height="300" Width="400"
+        Title="App Installer" Height="300" Width="400"
         WindowStartupLocation="CenterScreen"
         WindowStyle="SingleBorderWindow" ResizeMode="CanMinimize">
     <Grid>
@@ -39,7 +39,7 @@ function GUI($applications, $praefix){
     $reader=(New-Object System.Xml.XmlNodeReader $xaml)
     $XMLForm=[Windows.Markup.XamlReader]::Load( $reader )
     if($praefix -eq $null){
-        $XMLForm.Title = "Application Switcher"
+        $XMLForm.Title = "App Installer"
     }else{
         $XMLForm.Title = $praefix
     }
@@ -85,8 +85,13 @@ function GUI($applications, $praefix){
 }
 
 function Main{
-    # Admin check
-    #AdminCheck
+    Write-host "#######################"
+	Write-host "#    App Installer    #"
+	Write-host "#    Version 1.0      #"
+	Write-host "#######################"
+	
+	# Admin check
+    AdminCheck
     
     # Program data
     $applications = Get-Content "$($PSScriptRoot)\applications.json" | ConvertFrom-Json   
