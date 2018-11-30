@@ -84,27 +84,6 @@ function GUI($applications, $praefix){
     $XMLForm.ShowDialog() | Out-Null
 }
 
-function Main{
-    Write-host "#######################"
-	Write-host "#    App Installer    #"
-	Write-host "#    Version 1.0      #"
-	Write-host "#######################"
-	
-	# Admin check
-    AdminCheck
-    
-    # Program data
-    $applications = Get-Content "$($PSScriptRoot)\AppInstaller.json" | ConvertFrom-Json   
-
-    # User selection
-    $global:guiselection = @()
-    GUI $applications
-    foreach($selected in $global:guiselection){
-        GUI $applications $selected
-    }
-    InstallSoftware
-}
-
 function InstallSoftware{
     Write-Host "Installing: $($global:guiselection)" -ForegroundColor Green
     [PSCustomObject]$jsonPath = $global:guiselection
@@ -137,6 +116,22 @@ function InstallSoftware{
 #
 # Main
 #
-Main
+Write-host "#######################"
+Write-host "#    App Installer    #"
+Write-host "#    Version 1.0      #"
+Write-host "#######################"
 
+# Admin check
+AdminCheck
+
+# Program data
+$applications = Get-Content "$($PSScriptRoot)\AppInstaller.json" | ConvertFrom-Json   
+
+# User selection
+$global:guiselection = @()
+GUI $applications
+foreach($selected in $global:guiselection){
+GUI $applications $selected
+}
+InstallSoftware
 pause
