@@ -27,7 +27,7 @@ function GUI($applications, $praefix){
     [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="App Installer" Height="300" Width="400"
+        Title="App Installer" Height="200" Width="330"
         WindowStartupLocation="CenterScreen"
         WindowStyle="SingleBorderWindow" ResizeMode="CanMinimize">
     <Grid>
@@ -84,29 +84,62 @@ function GUI($applications, $praefix){
     $XMLForm.ShowDialog() | Out-Null
 }
 
-function InstallSoftware{
-    Write-Host "Installing: $($global:guiselection)" -ForegroundColor Green
+function InstallSoftware{    
     [PSCustomObject]$jsonPath = $global:guiselection
     $obj =  $applications.$($jsonPath[0]).$($jsonPath[1])
+
+    function Checkfile($file){
+        if(Test-Path $file){
+            Write-Host "`"$($file)`" exist" -ForegroundColor Green
+            Write-Host "Installing: $($global:guiselection)" -ForegroundColor Green
+            return $true
+        }else{
+            Write-Host "`"$($file)`" does not exist" -ForegroundColor Red
+            pause
+            exit
+        }
+    }
    
     if($obj.Path -like "*.cmd"){
         if($obj.Arguments -ne $null -or $obj.Arguments -ne ""){
-            Start-Process "cmd.exe" -ArgumentList "/c `"$($obj.Path)`" $($obj.Arguments)"
+            if(Checkfile($obj.Path)){
+                Start-Process "cmd.exe" -ArgumentList "/c `"$($obj.Path)`" $($obj.Arguments)"
+            }
         }else{
-            Start-Process "cmd.exe" -ArgumentList "/c `"$($obj.Path)`""
+            if(Checkfile($obj.Path)){
+                Start-Process "cmd.exe" -ArgumentList "/c `"$($obj.Path)`""
+            }
         }
     }    
     elseif($obj.Path -like "*.ps1"){
         if($obj.Arguments -ne $null -or $obj.Arguments -ne ""){
-            start-process powershell -Argumentlist "-file `"$($obj.Path)`" $($obj.Arguments)"
+            if(Checkfile($obj.Path)){
+                start-process powershell -Argumentlist "-file `"$($obj.Path)`" $($obj.Arguments)"
+            }
         }else{
-            start-process powershell -Argumentlist "-file `"$($obj.Path)`""
+            if(Checkfile($obj.Path)){
+                start-process powershell -Argumentlist "-file `"$($obj.Path)`""
+            }
         }
     }elseif($obj.Path -like "*.exe"){
         if($obj.Arguments -ne $null -and $obj.Arguments -ne ""){
-            Start-Process $obj.Path -ArgumentList $obj.Arguments
+            if(Checkfile($obj.Path)){
+                Start-Process $obj.Path -ArgumentList $obj.Arguments
+            }
         }else{
-            Start-Process $obj.Path
+            if(Checkfile($obj.Path)){
+                Start-Process $obj.Path
+            }
+        }
+    }elseif($obj.Path -like "*.msi"){
+        if($obj.Arguments -ne $null -and $obj.Arguments -ne ""){
+            if(Checkfile($obj.Path)){
+                
+            }
+        }else{
+            if(Checkfile($obj.Path)){
+                
+            }
         }
     }else{
         exit
@@ -121,6 +154,9 @@ Write-host "#    App Installer    #"
 Write-host "#    Version 1.0      #"
 Write-host "#######################"
 
+# Log
+Start-Transcript -path "$($PSScriptRoot)\AppInstaller.log" -append | Out-Null
+
 # Admin check
 AdminCheck
 
@@ -134,4 +170,7 @@ foreach($selected in $global:guiselection){
 GUI $applications $selected
 }
 InstallSoftware
-pause
+
+# Stop log
+Stop-Transcript | Out-Null
+Start-Sleep -Seconds 5
